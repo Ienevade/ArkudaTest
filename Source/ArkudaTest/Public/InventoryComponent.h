@@ -16,6 +16,9 @@ class ARKUDATEST_API UInventoryComponent : public UActorComponent
 
 public:	
 	// Sets default values for this component's properties
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Components")
+	int32 MaxItems = 3;
+	
 	void SetItem(int i, AItem* Item)
 	{
 		ItemTable[i]=Item;
@@ -35,12 +38,6 @@ protected:
 	TArray <AItem*> ItemTable;
 
 
-	
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-		
 };

@@ -18,19 +18,11 @@ public:
 	UStaticMeshComponent* MeshComponent;
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Components")
-	UTexture* PicObject;
+	
 	
 	
 	// Sets default values for this actor's properties
 	AItem();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 };

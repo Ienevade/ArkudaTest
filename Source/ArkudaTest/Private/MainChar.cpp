@@ -32,36 +32,24 @@ AMainChar::AMainChar()
 
 }
 
-// Called when the game starts or when spawned
-void AMainChar::BeginPlay()
-{
-	Super::BeginPlay();
-	ActiveSlot = 0;
-	
-}
 
-// Called every frame
-void AMainChar::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
 
 // Called to bind functionality to input
 void AMainChar::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	//Бинд функций к Axis Mapping из редактора 
+	//Bind Func to Axis ans Actions 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AMainChar::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AMainChar::MoveRight);
 
 	PlayerInputComponent->BindAxis("LookUp", this, &AMainChar::LookUp);
 	PlayerInputComponent->BindAxis("TurnAround", this, &AMainChar::TurnAround);
-	//Бинд Функций к Action Maping
+	
 	PlayerInputComponent->BindAction("Grab",IE_Pressed, this,&AMainChar::Grab);
-	PlayerInputComponent->BindAction("PickUp",IE_Pressed, this,&AMainChar::PickUp);
-	PlayerInputComponent->BindAction("Drop",IE_Pressed, this,&AMainChar::Drop);
+	//Commented out as used in BP
+	// PlayerInputComponent->BindAction("PickUp",IE_Pressed, this,&AMainChar::PickUp);
+	// PlayerInputComponent->BindAction("Drop",IE_Pressed, this,&AMainChar::Drop);
 
 	PlayerInputComponent->BindAction("IterSlot",IE_Pressed, this, &AMainChar::IterSlots);
 	PlayerInputComponent->BindAction("DeIterslot",IE_Pressed, this,&AMainChar::DeIterslots);
@@ -91,38 +79,44 @@ void AMainChar::TurnAround(float Amount)
 
 void AMainChar::Grab()
 {
-	//Опеределние переменных начала и конца трейса
+	//Init variables Start and End of Trace
 	FVector StartLoc = CameraComponent->GetComponentLocation();
 	FVector EndLoc = StartLoc + (CameraComponent->GetForwardVector() * 700);
-	//Переменная с результатом трейса
+	//Trace Result
 	FHitResult HitResult;
 	
 	FCollisionQueryParams Params;
 
-	//Создание структуры настроек для присоединения
+	//Make setting struct for Attach\Detach 
 	FAttachmentTransformRules AttachmentTransformRules = FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true );
 	FDetachmentTransformRules DetachmentTransformRules = FDetachmentTransformRules(EDetachmentRule::KeepWorld, true);
-	//Сам трейс
-	if (not GetWorld()->LineTraceSingleByChannel(HitResult, StartLoc, EndLoc, ECollisionChannel::ECC_Visibility, Params, FCollisionResponseParams()) )
-	{
-		if (ItemInHand!=nullptr)
-		{
+	//Trace
+	GetWorld()->LineTraceSingleByChannel(HitResult, StartLoc, EndLoc, ECollisionChannel::ECC_Visibility, Params, FCollisionResponseParams()) ;
+	
+	if (ItemInHand!=nullptr)
+		{	//Detach if item in hand
 			ItemInHand->DetachFromActor(DetachmentTransformRules);
 			ItemInHand->SetActorEnableCollision(true);
-			ItemInHand->MeshComponent->SetSimulatePhysics(true);
+			//Detach on land
+			FVector DropLocation = this->GetMesh()->GetSocketLocation("hand_rSocket");
+			DropLocation.Z = 0.0f;
+			ItemInHand->SetActorLocation(DropLocation);
+			//Clear variable
 			ItemInHand=nullptr;
+			return;
 			
 		}
-		return;
-	}
+		
+	
+	
 	ItemInHand = Cast<AItem>(HitResult.GetActor());
 
 	if (ItemInHand == nullptr)
-	{
+	{	//if actor not Item exit
 		return;
 	}
 	
-	//Отлключение коллизии присоединяемого объекта
+	//Disable collision and attach to hand socket
 	
 	HitResult.GetActor()->SetActorEnableCollision(false);
 	HitResult.GetActor()->AttachToComponent(this->GetMesh() ,AttachmentTransformRules , "hand_rSocket");
@@ -131,7 +125,7 @@ void AMainChar::Grab()
 }
 
 void AMainChar::PickUp()
-{
+{	//If inventory slot empty, add item
 	if(InventoryComponent->GetItem(ActiveSlot) == nullptr and ItemInHand!=nullptr)
 	{
 		InventoryComponent->SetItem(ActiveSlot,ItemInHand);
@@ -144,7 +138,7 @@ void AMainChar::Drop()
 {
 	if(InventoryComponent->GetItem(ActiveSlot)!=nullptr)
 	{
-		auto SpawnActor = InventoryComponent->GetItem(ActiveSlot);
+		AItem* SpawnActor = InventoryComponent->GetItem(ActiveSlot);
 		FVector SpawnLocation = this->GetMesh()->GetSocketLocation("hand_rSocket");
 		SpawnLocation.Z = 0.0f;
 		GetWorld()->SpawnActor(SpawnActor->GetClass(), &SpawnLocation );
@@ -154,7 +148,7 @@ void AMainChar::Drop()
 
 void AMainChar::IterSlots()
 {
-	if (ActiveSlot==2)
+	if (ActiveSlot==InventoryComponent->MaxItems-1)
 	{
 		ActiveSlot=0;
 		return;

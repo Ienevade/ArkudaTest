@@ -26,7 +26,7 @@ public:
 	AMainChar();
 
 protected:
-	//Добавление компонента камеры
+	//Add Char components
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Components")
 	UCameraComponent * CameraComponent;
 
@@ -37,7 +37,7 @@ protected:
 	AItem* ItemInHand;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Components")
-	int ActiveSlot;
+	int32 ActiveSlot = 0;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Components")
 	UPhysicsHandleComponent* PhysicsHandleComponent;
@@ -46,34 +46,33 @@ protected:
 	UInventoryComponent* InventoryComponent;
 	// Called when the game starts or when spawned
 	
-	virtual void BeginPlay() override;
+	
 
 public:	
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	//Объявление функций, используемых для перемещения персонажа
+	//Define func for move
 private:
 	void MoveForward(float Amount);
 	void MoveRight(float Amount);
 
-	//Объявление функций для обзора персонажа
+	//Define func for look
 	void LookUp(float Amount);
 	void TurnAround(float Amount);
 
-	//Объявление функций для поднятий, захвата и сброса
+	//Define func for Grab, Drop, PickUp
+	
 	void Grab();
 	UFUNCTION(BlueprintCallable)
 	void PickUp();
 	UFUNCTION(BlueprintCallable)
 	void Drop();
-
-	UFUNCTION(BlueprintCallable)
+	//Change active slot func
 	void IterSlots();
-	UFUNCTION(BlueprintCallable)
 	void DeIterslots();
 	
 };
